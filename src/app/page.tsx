@@ -1,75 +1,49 @@
 "use client";
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import ImageUploader from '../components/ImageUploader';
 import { manipulateImage, applyEdgeDetection } from '../utils/imageManipulation';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const [manipulatedCanvas, setManipulatedCanvas] = useState<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(false);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  // Use useEffect to log the current ref and ensure assignment
-  useEffect(() => {
-    if (!imageRef.current) {
-      console.error('ImageRef is not assigned correctly in useEffect');
-    }
-  }, [imageRef.current]);
-
   const handleImageUpload = (imageSrc: string) => {
     if (imageRef.current) {
       imageRef.current.src = imageSrc;
-      console.log('Image uploaded and src set:', imageRef.current.src);
+      setManipulatedCanvas(null); // Clear previous canvas if any
     } else {
       console.error('ImageRef is not assigned correctly');
     }
   };
 
-
   const handleManipulate = async (type: string) => {
+    if (!imageRef.current || !imageRef.current.src) return;
+    setLoading(true);
+    let canvas: HTMLCanvasElement | null = null;
+
     try {
-      if (imageRef.current) {
-        console.log(`Button clicked: ${type}`); // Log button click event
-        setLoading(true);
-  
-        // Check if image is loaded correctly
-        if (!imageRef.current.src) {
-          console.error('Image not loaded properly'); // Debug: Check if the image is loaded
-          return;
-        }
-  
-        let canvas: HTMLCanvasElement | null = null;
-        switch (type) {
-          case 'grayscale':
-            console.log('Starting Grayscale Manipulation'); // Log before grayscale manipulation
-            canvas = await manipulateImage(imageRef.current);
-            console.log('Grayscale Manipulation Complete'); // Log after grayscale manipulation
-            break;
-          case 'edge-detection':
-            console.log('Starting Edge Detection'); // Log before edge detection manipulation
-            canvas = await applyEdgeDetection(imageRef.current);
-            console.log('Edge Detection Complete'); // Log after edge detection manipulation
-            break;
-          default:
-            alert('Invalid manipulation type');
-        }
-  
-        if (canvas) {
-          console.log('Canvas created successfully', canvas); // Log canvas details if created successfully
-          setManipulatedCanvas(canvas);
-        } else {
-          console.error('Failed to create canvas'); // Log if canvas creation failed
-        }
-      } else {
-        console.error('ImageRef is null'); // Debug: Check if imageRef is accessible
+      switch (type) {
+        case 'grayscale':
+          canvas = await manipulateImage(imageRef.current);
+          break;
+        case 'edge-detection':
+          canvas = await applyEdgeDetection(imageRef.current);
+          break;
+        default:
+          alert('Invalid manipulation type');
       }
+
+      if (canvas) setManipulatedCanvas(canvas);
     } catch (error) {
-      console.error('Manipulation failed:', error); // Log error details
-      alert('Failed to manipulate the image. Please try again.');
+      console.error('Manipulation failed:', error);
     } finally {
       setLoading(false);
     }
   };
+
   const handleDownload = (format: 'png' | 'jpeg') => {
     if (manipulatedCanvas) {
       const link = document.createElement('a');
@@ -80,74 +54,135 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-8 pb-20 sm:p-20 flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-gray-100">
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-extrabold mt-4 text-gray-800">Welcome to Photoman</h1>
-        <p className="text-xl mt-2 text-gray-600">
-          Upload your images, manipulate them using TensorFlow.js, and download the results instantly.
+    <div className="min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-8 flex flex-col items-center">
+      <motion.header
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-12"
+      >
+        <h1 className="text-6xl font-bold text-white tracking-wide">Photoman</h1>
+        <p className="text-xl text-gray-200 mt-2">
+          Upload, manipulate, and download your images with a touch of style.
         </p>
-      </header>
+      </motion.header>
 
-      <main className="flex flex-col items-center gap-8 w-full max-w-3xl bg-white p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:shadow-2xl">
-        <div className="w-full flex flex-col items-center">
-          <ImageUploader onImageUpload={handleImageUpload} />
-          {/* Always render the img element */}
-          <img
-            ref={imageRef}
-            src=""
-            alt="Uploaded"
-            className="mt-4 w-64 h-64 object-contain border-2 border-gray-300 rounded-lg shadow-sm"
-          />
-        </div>
-
-        <div className="flex gap-4 mt-4">
-          <button
-            onClick={() => handleManipulate('grayscale')}
-            className="bg-blue-500 text-white px-5 py-3 rounded-full shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200 ease-in-out"
-            disabled={loading}
+      <main className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl">
+        {/* Before Image Section */}
+        <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center hover:shadow-xl transform hover:scale-105 transition"
           >
-            {loading ? 'Loading...' : 'Grayscale'}
-          </button>
-          <button
-            onClick={() => handleManipulate('edge-detection')}
-            className="bg-blue-500 text-white px-5 py-3 rounded-full shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200 ease-in-out"
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : 'Edge Detection'}
-          </button>
-        </div>
+            <h2 className="text-3xl font-semibold text-gray-700 mb-2">Before</h2>
+            <p className="text-gray-500 mb-4 text-center">
+              This is your original uploaded image. Upload a new image to get started.
+            </p>
+            <ImageUploader onImageUpload={handleImageUpload} imageRef={imageRef} />
+          </motion.div>
+        {/* After Image Section */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center hover:shadow-xl transform hover:scale-105 transition"
+        >
+          <h2 className="text-3xl font-semibold text-gray-700 mb-2">After</h2>
+          <p className="text-gray-500 mb-4 text-center">
+            This shows the manipulated version of your image. Choose an effect to see the results.
+          </p>
+          <div className="mt-4 w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
+            {manipulatedCanvas ? (
+              <canvas
+                width={manipulatedCanvas.width}
+                height={manipulatedCanvas.height}
+                ref={(el) => {
+                  if (el && manipulatedCanvas) {
+                    el.parentNode?.replaceChild(manipulatedCanvas, el);
+                  }
+                }}
+                className="max-w-full max-h-full object-contain" // Ensures consistent sizing
+              />
 
-        {manipulatedCanvas && (
-        <div className="flex flex-col items-center mt-6">
-          <canvas
-            className="rounded-lg shadow-md"
-            width={manipulatedCanvas.width}
-            height={manipulatedCanvas.height}
-            ref={(el) => {
-              if (el && manipulatedCanvas) {
-                el.parentNode?.replaceChild(manipulatedCanvas, el);
-              }
-            }}
-            />
-            <div className="flex gap-4 mt-4">
+            ) : (
+              <div className="text-gray-400 text-sm">
+                Your manipulated image will appear here.
+              </div>
+            )}
+          </div>
+
+          <h3 className="text-xl font-semibold text-gray-700 mt-6">Image Manipulation Controls</h3>
+          <div className="flex flex-wrap gap-4 mt-4 mb-4 justify-center">
+            <button
+              onClick={() => handleManipulate('grayscale')}
+              className={`bg-blue-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition-all ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : 'Grayscale'}
+            </button>
+            <button
+              onClick={() => handleManipulate('edge-detection')}
+              className={`bg-blue-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition-all ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : 'Edge Detection'}
+            </button>
+            {/* Add buttons for each effect */}
+            {[
+              'Brightness Adjustment',
+              'Contrast Adjustment',
+              'Invert Colors',
+              'Blur Effect',
+              'Sharpen',
+              'Sepia Tone',
+              'Saturation Adjustment',
+              'Hue Rotation',
+              'Flip Horizontal',
+              'Flip Vertical',
+              'Rotate',
+              'Pixelate',
+              'Noise Addition',
+              'Crop',
+              'Resize',
+              'Emboss Effect',
+              'Threshold',
+              'Outline Detection',
+            ].map((effect) => (
+              <button
+                key={effect}
+                onClick={() => handleManipulate(effect)}
+                className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition-all"
+              >
+                {effect}
+              </button>
+            ))}
+          </div>
+
+          {manipulatedCanvas && (
+            <div className="flex gap-4">
               <button
                 onClick={() => handleDownload('png')}
-                className="bg-green-500 text-white px-5 py-3 rounded-full shadow-md hover:bg-green-600 hover:shadow-lg transition-all duration-200 ease-in-out"
+                className="bg-green-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition transform hover:scale-105"
               >
                 Download as PNG
               </button>
               <button
                 onClick={() => handleDownload('jpeg')}
-                className="bg-green-500 text-white px-5 py-3 rounded-full shadow-md hover:bg-green-600 hover:shadow-lg transition-all duration-200 ease-in-out"
+                className="bg-green-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition transform hover:scale-105"
               >
                 Download as JPEG
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </motion.div>
       </main>
 
-      <footer className="text-center mt-12 text-sm text-gray-500">
+      <footer className="text-center mt-12 text-sm text-gray-200">
         Powered by Next.js and TensorFlow.js | Created by Finn Massari
       </footer>
     </div>
