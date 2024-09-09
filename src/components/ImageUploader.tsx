@@ -1,7 +1,12 @@
-// components/ImageUploader.tsx
-import { useState, forwardRef } from 'react';
+import { useState } from 'react';
 
-const ImageUploader = ({ onImageUpload, imageRef }: { onImageUpload: (image: string) => void, imageRef: React.RefObject<HTMLImageElement> }) => {
+const ImageUploader = ({
+  onImageUpload,
+  imageRef,
+}: {
+  onImageUpload: (image: string) => void;
+  imageRef: React.RefObject<HTMLImageElement>;
+}) => {
   const [image, setImage] = useState<string | null>(null);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,6 +21,13 @@ const ImageUploader = ({ onImageUpload, imageRef }: { onImageUpload: (image: str
         }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Ensure the ref is set correctly
+  const setImageRef = (element: HTMLImageElement | null) => {
+    if (element) {
+      imageRef.current = element;
     }
   };
 
@@ -34,8 +46,14 @@ const ImageUploader = ({ onImageUpload, imageRef }: { onImageUpload: (image: str
           </span>
         </label>
       )}
-      {image && <img ref={imageRef} src={image} alt="Uploaded" className="max-w-full max-h-full object-contain" />
-    }
+      {image && (
+        <img
+          ref={setImageRef}
+          src={image}
+          alt="Uploaded"
+          className="max-w-full max-h-full object-contain"
+        />
+      )}
     </div>
   );
 };
