@@ -53,6 +53,10 @@ export default function Home() {
     }
   };
 
+  const Spinner = () => (
+    <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8"></div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-8 flex flex-col items-center">
       <motion.header
@@ -93,24 +97,25 @@ export default function Home() {
             This shows the manipulated version of your image. Choose an effect to see the results.
           </p>
           <div className="mt-4 w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
-            {manipulatedCanvas ? (
-              <canvas
-                width={manipulatedCanvas.width}
-                height={manipulatedCanvas.height}
-                ref={(el) => {
-                  if (el && manipulatedCanvas) {
-                    el.parentNode?.replaceChild(manipulatedCanvas, el);
-                  }
-                }}
-                className="max-w-full max-h-full object-contain" // Ensures consistent sizing
-              />
-
-            ) : (
-              <div className="text-gray-400 text-sm">
-                Your manipulated image will appear here.
-              </div>
-            )}
-          </div>
+  {loading ? (
+    <Spinner />
+  ) : manipulatedCanvas ? (
+    <canvas
+      width={manipulatedCanvas.width}
+      height={manipulatedCanvas.height}
+      ref={(el) => {
+        if (el && manipulatedCanvas) {
+          el.parentNode?.replaceChild(manipulatedCanvas, el);
+        }
+      }}
+      className="max-w-full max-h-full object-contain"
+    />
+  ) : (
+    <div className="text-gray-400 text-sm">
+      Your manipulated image will appear here.
+    </div>
+  )}
+</div>
 
           <h3 className="text-xl font-semibold text-gray-700 mt-6">Image Manipulation Controls</h3>
           <div className="flex flex-wrap gap-4 mt-4 mb-4 justify-center">
@@ -180,6 +185,20 @@ export default function Home() {
             </div>
           )}
         </motion.div>
+        <style jsx>{`
+          .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </main>
 
       <footer className="text-center mt-12 text-sm text-gray-200">
