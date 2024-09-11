@@ -29,13 +29,10 @@ export default function Home() {
 
   useEffect(() => {
     if (manipulatedCanvas && manipulatedCanvasRef.current) {
-      manipulatedCanvas.width = manipulatedCanvasRef.current.width;
-      manipulatedCanvas.height = manipulatedCanvasRef.current.height;
-  
-      manipulatedCanvasRef.current.replaceWith(manipulatedCanvas);
+      manipulatedCanvasRef.current.parentNode?.replaceChild(manipulatedCanvas, manipulatedCanvasRef.current);
       manipulatedCanvasRef.current = manipulatedCanvas;
-      console.log("Manipulated canvas updated successfully.");
-    }
+      console.log("Manipulated canvas updated successfully and displayed.");
+    }    
   }, [manipulatedCanvas]);
   
 
