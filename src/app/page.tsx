@@ -1,10 +1,11 @@
 // src\app\page.tsx
 "use client";
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import ImageUploader from '../components/ImageUploader';
 import { manipulateImage, applyEdgeDetection } from '../utils/imageManipulation';
 import { motion } from 'framer-motion';
+
 
 export default function Home() {
   const [manipulatedCanvas, setManipulatedCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -21,22 +22,25 @@ export default function Home() {
   };
 
   const handleManipulate = async (type: string) => {
-    if (!imageRef.current || !imageRef.current.src) return;
+    const sourceElement = manipulatedCanvas || imageRef.current;
+  
+    if (!sourceElement || (sourceElement instanceof HTMLImageElement && !sourceElement.src)) return;
+  
     setLoading(true);
     let canvas: HTMLCanvasElement | null = null;
-
+  
     try {
       switch (type) {
         case 'grayscale':
-          canvas = await manipulateImage(imageRef.current);
+          canvas = await manipulateImage(sourceElement);
           break;
         case 'edge-detection':
-          canvas = await applyEdgeDetection(imageRef.current);
+          canvas = await applyEdgeDetection(sourceElement);
           break;
         default:
           alert('Invalid manipulation type');
       }
-
+  
       if (canvas) setManipulatedCanvas(canvas);
     } catch (error) {
       console.error('Manipulation failed:', error);
@@ -44,6 +48,44 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  function TypingEffect({ texts, typingSpeed = 100, deletingSpeed = 50 }) {
+    const [displayedText, setDisplayedText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [loopIndex, setLoopIndex] = useState(0);
+    const [charIndex, setCharIndex] = useState(0);
+  
+    useEffect(() => {
+      const currentText = texts[loopIndex % texts.length];
+  
+      const handleTyping = () => {
+        if (!isDeleting && charIndex < currentText.length) {
+          setDisplayedText(currentText.slice(0, charIndex + 1));
+          setCharIndex((prev) => prev + 1);
+        } else if (isDeleting && charIndex > 0) {
+          setDisplayedText(currentText.slice(0, charIndex - 1));
+          setCharIndex((prev) => prev - 1);
+        } else if (!isDeleting && charIndex === currentText.length) {
+          setTimeout(() => setIsDeleting(true), 1000);
+        } else if (isDeleting && charIndex === 0) {
+          setIsDeleting(false);
+          setLoopIndex((prev) => prev + 1);
+        }
+      };
+  
+      const typingTimeout = setTimeout(handleTyping, isDeleting ? deletingSpeed : typingSpeed);
+  
+      return () => clearTimeout(typingTimeout);
+    }, [charIndex, isDeleting, texts, typingSpeed, deletingSpeed, loopIndex]);
+  
+    return (
+      <span className="typing-effect">
+        {displayedText}
+        <span className="cursor">|</span>
+      </span>
+    );
+  }
+  
 
   const handleDownload = (format: 'png' | 'jpeg') => {
     if (manipulatedCanvas) {
@@ -68,7 +110,20 @@ export default function Home() {
       >
         <h1 className="text-6xl font-bold text-white tracking-wide">Photoman</h1>
         <p className="text-xl text-gray-200 mt-2">
-          Upload, manipulate, and download your images with a touch of style.
+          The website where you can{' '}
+          <span style={{ display: 'inline-block' }}>
+            <TypingEffect
+              texts={[
+                'upload your images',
+                'apply basic adjustments',
+                'apply filtering',
+                'transform your images',
+                'apply image effects',
+              ]}
+              typingSpeed={100}
+              deletingSpeed={50}
+            />
+          </span>
         </p>
       </motion.header>
 
@@ -224,6 +279,41 @@ export default function Home() {
             }
             100% {
               transform: rotate(360deg);
+            }
+          }
+
+          .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+          }
+
+          .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+            mix-blend-mode: overlay;
+          }
+
+          .typing-effect span {
+            color: #ffeb3b;
+            font-weight: bold;
+          }
+
+          @keyframes float {
+            0% {
+              transform: translateY(0) translateX(0);
+            }
+            50% {
+              transform: translateY(-20px) translateX(10px);
+            }
+            100% {
+              transform: translateY(0) translateX(0);
             }
           }
         `}</style>
