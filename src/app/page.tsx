@@ -3,7 +3,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import ImageUploader from '../components/ImageUploader';
-import { manipulateImage, applyEdgeDetection } from '../utils/imageManipulation';
+import { adjustBrightness, adjustContrast, invertColors, applyEdgeDetection } from '../utils/imageManipulation';
 import { motion } from 'framer-motion';
 
 
@@ -11,6 +11,7 @@ export default function Home() {
   const [manipulatedCanvas, setManipulatedCanvas] = useState<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(false);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const [showOriginal, setShowOriginal] = useState(true);
 
   const handleImageUpload = (imageSrc: string) => {
     if (imageRef.current) {
@@ -21,21 +22,37 @@ export default function Home() {
     }
   };
 
+  const manipulatedCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (manipulatedCanvas && manipulatedCanvasRef.current) {
+      manipulatedCanvasRef.current.replaceWith(manipulatedCanvas);
+      manipulatedCanvasRef.current = manipulatedCanvas;
+    }
+  }, [manipulatedCanvas]);
+
   const handleManipulate = async (type: string) => {
     const sourceElement = manipulatedCanvas || imageRef.current;
-
-    if (!sourceElement || !(sourceElement instanceof HTMLImageElement)) return;
+  
+    if (!sourceElement || !(sourceElement instanceof HTMLImageElement || sourceElement instanceof HTMLCanvasElement))
+      return;
   
     setLoading(true);
     let canvas: HTMLCanvasElement | null = null;
   
     try {
       switch (type) {
-        case 'grayscale':
-          canvas = await manipulateImage(sourceElement);
-          break;
         case 'edge-detection':
           canvas = await applyEdgeDetection(sourceElement);
+          break;
+        case 'Brightness Adjustment':
+          canvas = await adjustBrightness(sourceElement, 1.2); 
+          break;
+        case 'Contrast Adjustment':
+          canvas = await adjustContrast(sourceElement, 1.2); 
+          break;
+        case 'Invert Colors':
+          canvas = await invertColors(sourceElement); 
           break;
         default:
           alert('Invalid manipulation type');
@@ -48,6 +65,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+  
 
   function TypingEffect({
     texts,
@@ -135,39 +153,53 @@ export default function Home() {
       </motion.header>
 
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center hover:shadow-xl transform hover:scale-105 transition"
-        >
-          <h2 className="text-3xl font-semibold text-gray-700 mb-2">Before</h2>
-          <p className="text-gray-500 mb-4 text-center">
-            This is your original uploaded image. Upload a new image to get started.
-          </p>
-          <ImageUploader onImageUpload={handleImageUpload} imageRef={imageRef} />
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center hover:shadow-xl transform hover:scale-105 transition"
+      >
+        <h2 className="text-3xl font-semibold text-gray-700 mb-2">
+          {showOriginal ? 'Original Image' : 'Manipulated Image'}
+        </h2>
+        <p className="text-gray-500 mb-4 text-center">
+          {showOriginal
+            ? 'This is your original uploaded image.'
+            : 'This is your manipulated image.'}
+        </p>
 
-          <div className="mt-6 w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
-            {loading ? (
-              <Spinner />
-            ) : manipulatedCanvas ? (
-              <canvas
-                width={manipulatedCanvas.width}
-                height={manipulatedCanvas.height}
-                ref={(el) => {
-                  if (el && manipulatedCanvas) {
-                    el.parentNode?.replaceChild(manipulatedCanvas, el);
-                  }
-                }}
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : (
-              <div className="text-gray-400 text-sm">
-                Your manipulated image will appear here.
-              </div>
-            )}
-          </div>
-        </motion.div>
+        <ImageUploader onImageUpload={handleImageUpload} imageRef={imageRef} />
+
+        <div className="mt-6 w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              {showOriginal && imageRef.current && (
+                <img
+                  src={imageRef.current.src}
+                  alt="Uploaded Image"
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
+              {!showOriginal && manipulatedCanvas && (
+                <canvas
+                  ref={manipulatedCanvasRef}
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        <button
+          onClick={() => setShowOriginal((prev) => !prev)}
+          className="mt-4 bg-purple-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-purple-600 transition transform hover:scale-105"
+        >
+          {showOriginal ? 'View Manipulated Image' : 'View Original Image'}
+        </button>
+      </motion.div>
+
 
         <motion.div
           initial={{ opacity: 0, x: 50 }}
@@ -249,23 +281,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-
-          {manipulatedCanvas && (
-            <div className="flex gap-4">
-              <button
-                onClick={() => handleDownload('png')}
-                className="bg-green-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition transform hover:scale-105"
-              >
-                Download as PNG
-              </button>
-              <button
-                onClick={() => handleDownload('jpeg')}
-                className="bg-green-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition transform hover:scale-105"
-              >
-                Download as JPEG
-              </button>
-            </div>
-          )}
         </motion.div>
       </main>
 
