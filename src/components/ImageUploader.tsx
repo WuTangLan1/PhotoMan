@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// src\components\ImageUploader.tsx
+import { useState, useEffect } from 'react';
 
 const ImageUploader = ({
   onImageUpload,
@@ -23,6 +24,14 @@ const ImageUploader = ({
       reader.readAsDataURL(file);
     }
   };
+
+  // Assign the imageRef once the image is loaded
+  useEffect(() => {
+    if (image && imageRef.current) {
+      imageRef.current.src = image;
+      console.log("ImageRef assigned with image:", image);
+    }
+  }, [image, imageRef]);
 
   return (
     <div className="relative w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
