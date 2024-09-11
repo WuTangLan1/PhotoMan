@@ -1,4 +1,4 @@
-// src\components\ImageUploader.tsx
+// ImageUploader.tsx
 import { useState, useEffect } from 'react';
 
 const ImageUploader = ({
@@ -25,11 +25,14 @@ const ImageUploader = ({
     }
   };
 
-  // Assign the imageRef once the image is loaded
   useEffect(() => {
-    if (image && imageRef.current) {
-      imageRef.current.src = image;
-      console.log("ImageRef assigned with image:", image);
+    if (imageRef.current && image) {
+      const imgElement = document.createElement('img');
+      imgElement.src = image;
+      imgElement.onload = () => {
+        imageRef.current = imgElement;
+        console.log("ImageRef assigned with image:", image);
+      };
     }
   }, [image, imageRef]);
 
@@ -53,7 +56,7 @@ const ImageUploader = ({
           ref={imageRef}
           src={image}
           alt="Uploaded"
-          className="max-w-full max-h-full object-contain"
+          className="w-full h-full object-contain"  
         />
       )}
     </div>

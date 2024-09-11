@@ -17,9 +17,9 @@ export default function Home() {
 
   const handleImageUpload = (imageSrc: string) => {
     if (imageRef.current) {
-      imageRef.current.src = imageSrc;
+      imageRef.current.src = imageSrc; 
       console.log("Image uploaded successfully:", imageSrc);
-      setManipulatedCanvas(null); 
+      setManipulatedCanvas(null);
     } else {
       console.error('ImageRef is not assigned correctly');
     }
@@ -28,14 +28,16 @@ export default function Home() {
   const manipulatedCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    console.log("imageRef current:", imageRef.current);
-    console.log("manipulatedCanvasRef current:", manipulatedCanvasRef.current);
     if (manipulatedCanvas && manipulatedCanvasRef.current) {
+      manipulatedCanvas.width = manipulatedCanvasRef.current.width;
+      manipulatedCanvas.height = manipulatedCanvasRef.current.height;
+  
       manipulatedCanvasRef.current.replaceWith(manipulatedCanvas);
       manipulatedCanvasRef.current = manipulatedCanvas;
       console.log("Manipulated canvas updated successfully.");
     }
   }, [manipulatedCanvas]);
+  
 
   const handleManipulate = async (type: string) => {
     const sourceElement = manipulatedCanvas || imageRef.current;
@@ -52,19 +54,25 @@ export default function Home() {
           canvas = await applyEdgeDetection(sourceElement);
           break;
         case 'Brightness Adjustment':
-          canvas = await adjustBrightness(sourceElement, 1.2); 
+          canvas = await adjustBrightness(sourceElement, 1.2);
           break;
         case 'Contrast Adjustment':
-          canvas = await adjustContrast(sourceElement, 1.2); 
+          canvas = await adjustContrast(sourceElement, 1.2);
           break;
         case 'Invert Colors':
-          canvas = await invertColors(sourceElement); 
+          canvas = await invertColors(sourceElement);
           break;
         default:
           alert('Invalid manipulation type');
       }
   
-      if (canvas) setManipulatedCanvas(canvas);
+      if (canvas) {
+        // Set canvas dimensions to match the source image
+        canvas.width = sourceElement.width;
+        canvas.height = sourceElement.height;
+        setManipulatedCanvas(canvas);
+      }
+  
       setIsManipulated(true);
     } catch (error) {
       console.error('Manipulation failed:', error);
@@ -72,13 +80,19 @@ export default function Home() {
       setLoading(false);
     }
   };
+  
 
   const handleToggleFlip = () => {
     if (flipCardRef.current && isManipulated) {
-      flipCardRef.current.classList.toggle('flipped');
-      setShowOriginal(!showOriginal); // Toggle between original and manipulated view
+      console.log("View Manipulated Image button clicked."); 
+      flipCardRef.current.classList.toggle('flipped'); 
+      setShowOriginal(!showOriginal); 
+    } else {
+      console.log("Cannot flip card - either flipCardRef is null or image is not manipulated.");
     }
-  };  
+  };
+  
+  
 
   function TypingEffect({
     texts,
@@ -166,61 +180,65 @@ export default function Home() {
       </motion.header>
 
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flip-card relative w-full max-w-md"
-          ref={flipCardRef}
-        >
-          <div className="flip-card-inner relative w-full h-96 rounded-xl shadow-2xl transform transition-transform duration-700 ease-in-out">
-            {/* Front Side - Original Image */}
-            <div className="flip-card-front absolute w-full h-full bg-white p-6 rounded-xl shadow-xl flex flex-col items-center justify-center">
-              <h2 className="text-3xl font-semibold text-gray-700 mb-4">Original Image</h2>
-              <ImageUploader onImageUpload={handleImageUpload} imageRef={imageRef} />
-              {isManipulated && (
-                <button
-                  onClick={handleToggleFlip}
-                  className="mt-6 bg-purple-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-purple-600 transition transform hover:scale-105"
-                >
-                  View Manipulated Image
-                </button>
-              )}
-            </div>
+      <motion.div
+      initial={{ opacity: 0, x: -50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flip-card relative w-full max-w-md"
+      ref={flipCardRef} 
+    >
+      <div className="flip-card-inner relative w-full h-96 rounded-xl shadow-2xl transform transition-transform duration-700 ease-in-out">
+        {/* Front Side - Original Image */}
+        <div className="flip-card-front absolute w-full h-full bg-white p-6 rounded-xl shadow-xl flex flex-col items-center justify-center">
+          <h2 className="text-3xl font-semibold text-gray-700 mb-4">Original Image</h2>
+          <ImageUploader onImageUpload={handleImageUpload} imageRef={imageRef} />
+          {isManipulated && (
+            <button
+              onClick={handleToggleFlip} 
+              className="mt-6 bg-purple-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-purple-600 transition transform hover:scale-105"
+            >
+              View Manipulated Image
+            </button>
+          )}
+        </div>
 
-            {/* Back Side - Manipulated Image */}
-            <div className="flip-card-back absolute w-full h-full bg-gradient-to-br from-gray-200 to-gray-400 p-6 rounded-xl shadow-xl flex flex-col items-center justify-center">
-              <h2 className="text-3xl font-semibold text-gray-700 mb-4">Manipulated Image</h2>
-              <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
-                {loading ? (
-                  <Spinner />
-                ) : (
-                  <canvas ref={manipulatedCanvasRef} className="max-w-full max-h-full object-contain" />
-                )}
-              </div>
-              <button
-                onClick={handleToggleFlip}
-                className="mt-6 bg-purple-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-purple-600 transition transform hover:scale-105"
-              >
-                View Original Image
-              </button>
-              <div className="mt-4 flex gap-4">
-                <button
-                  onClick={() => handleDownload('png')}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition transform hover:scale-105"
-                >
-                  Download PNG
-                </button>
-                <button
-                  onClick={() => handleDownload('jpeg')}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition transform hover:scale-105"
-                >
-                  Download JPEG
-                </button>
-              </div>
-            </div>
+        {/* Back Side - Manipulated Image */}
+        <div className="flip-card-back absolute w-full h-full bg-gradient-to-br from-gray-200 to-gray-400 p-6 rounded-xl shadow-xl flex flex-col items-center justify-center">
+          <h2 className="text-3xl font-semibold text-gray-700 mb-4">Manipulated Image</h2>
+          <div className="w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
+            {loading ? (
+              <Spinner />
+            ) : (
+              <canvas
+                ref={manipulatedCanvasRef}
+                className="w-full h-full object-contain"
+              />
+            )}
           </div>
-        </motion.div>
+          <button
+            onClick={handleToggleFlip}
+            className="mt-6 bg-purple-500 text-white py-2 px-6 rounded-full shadow-md hover:bg-purple-600 transition transform hover:scale-105"
+          >
+            View Original Image
+          </button>
+          <div className="mt-4 flex gap-4">
+            <button
+              onClick={() => handleDownload('png')}
+              className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition transform hover:scale-105"
+            >
+              Download PNG
+            </button>
+            <button
+              onClick={() => handleDownload('jpeg')}
+              className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition transform hover:scale-105"
+            >
+              Download JPEG
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
