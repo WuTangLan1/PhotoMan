@@ -5,14 +5,10 @@ import '@tensorflow/tfjs-backend-webgl';
 
 export const manipulateImage = async (imageElement: HTMLImageElement): Promise<HTMLCanvasElement> => {
   try {
-    const tensor = tf.browser.fromPixels(imageElement) as tf.Tensor3D;
-    console.log('Original Tensor:', tensor); 
+    const tensor = tf.browser.fromPixels(imageElement) as tf.Tensor3D; // Ensure this is correctly typed
 
     const grayscale = tensor.mean(2).expandDims(2).toFloat().div(tf.scalar(255));
-    console.log('Grayscale Tensor (Normalized):', grayscale);
-
-    const manipulatedImage = await tf.browser.toPixels(grayscale);
-    console.log('Manipulated Image Data:', manipulatedImage); 
+    const manipulatedImage = await tf.browser.toPixels(grayscale as tf.Tensor3D); // Cast to Tensor3D if needed
 
     const canvas = document.createElement('canvas');
     canvas.width = imageElement.width;
@@ -22,15 +18,16 @@ export const manipulateImage = async (imageElement: HTMLImageElement): Promise<H
       const imageData = new ImageData(new Uint8ClampedArray(manipulatedImage), canvas.width, canvas.height);
       ctx.putImageData(imageData, 0, 0);
     } else {
-      console.error('Failed to get canvas context'); 
+      console.error('Failed to get canvas context');
     }
 
     return canvas;
   } catch (error) {
-    console.error('Error in manipulateImage:', error); 
+    console.error('Error in manipulateImage:', error);
     throw error;
   }
 };
+
 
 export const applyEdgeDetection = async (imageElement: HTMLImageElement): Promise<HTMLCanvasElement> => {
     try {

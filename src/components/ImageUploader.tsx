@@ -24,13 +24,6 @@ const ImageUploader = ({
     }
   };
 
-  // Ensure the ref is set correctly
-  const setImageRef = (element: HTMLImageElement | null) => {
-    if (element) {
-      imageRef.current = element;
-    }
-  };
-
   return (
     <div className="relative w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
       {!image && (
@@ -48,7 +41,7 @@ const ImageUploader = ({
       )}
       {image && (
         <img
-          ref={setImageRef}
+          ref={imageRef}
           src={image}
           alt="Uploaded"
           className="max-w-full max-h-full object-contain"

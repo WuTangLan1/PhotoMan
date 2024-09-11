@@ -15,7 +15,7 @@ export default function Home() {
   const handleImageUpload = (imageSrc: string) => {
     if (imageRef.current) {
       imageRef.current.src = imageSrc;
-      setManipulatedCanvas(null); // Clear previous canvas if any
+      setManipulatedCanvas(null); 
     } else {
       console.error('ImageRef is not assigned correctly');
     }
@@ -23,8 +23,8 @@ export default function Home() {
 
   const handleManipulate = async (type: string) => {
     const sourceElement = manipulatedCanvas || imageRef.current;
-  
-    if (!sourceElement || (sourceElement instanceof HTMLImageElement && !sourceElement.src)) return;
+
+    if (!sourceElement || !(sourceElement instanceof HTMLImageElement)) return;
   
     setLoading(true);
     let canvas: HTMLCanvasElement | null = null;
@@ -49,7 +49,15 @@ export default function Home() {
     }
   };
 
-  function TypingEffect({ texts, typingSpeed = 100, deletingSpeed = 50 }) {
+  function TypingEffect({
+    texts,
+    typingSpeed = 100,
+    deletingSpeed = 50,
+  }: {
+    texts: string[];
+    typingSpeed?: number;
+    deletingSpeed?: number;
+  }) {
     const [displayedText, setDisplayedText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [loopIndex, setLoopIndex] = useState(0);
@@ -86,7 +94,6 @@ export default function Home() {
     );
   }
   
-
   const handleDownload = (format: 'png' | 'jpeg') => {
     if (manipulatedCanvas) {
       const link = document.createElement('a');
