@@ -135,7 +135,6 @@ export default function Home() {
       </motion.header>
 
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl">
-        {/* Before Image Section */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -148,7 +147,6 @@ export default function Home() {
           </p>
           <ImageUploader onImageUpload={handleImageUpload} imageRef={imageRef} />
 
-          {/* Processed Image Display */}
           <div className="mt-6 w-full h-72 border-2 border-dashed border-gray-300 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
             {loading ? (
               <Spinner />
@@ -171,7 +169,6 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Control Buttons Section */}
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -183,9 +180,7 @@ export default function Home() {
             Choose a category and select an effect to apply to your image.
           </p>
 
-          {/* Grouped Image Manipulation Controls */}
           <div className="flex flex-col gap-8 mt-4 mb-4 justify-center">
-            {/* Basic Adjustments */}
             <div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">Basic Adjustments</h3>
               <div className="flex gap-4 flex-wrap">
@@ -201,7 +196,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Filters */}
             <div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">Filters</h3>
               <div className="flex gap-4 flex-wrap">
@@ -217,7 +211,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Transformations */}
             <div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">Transformations</h3>
               <div className="flex gap-4 flex-wrap">
@@ -233,7 +226,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Effects */}
             <div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">Effects</h3>
               <div className="flex gap-4 flex-wrap">
@@ -275,55 +267,6 @@ export default function Home() {
             </div>
           )}
         </motion.div>
-        <style jsx>{`
-          .loader {
-            border-top-color: #3498db;
-            animation: spin 1s linear infinite;
-          }
-          @keyframes spin {
-            0% {
-              transform: rotate(0deg);
-            }
-            100% {
-              transform: rotate(360deg);
-            }
-          }
-
-          .background-animation {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            overflow: hidden;
-          }
-
-          .particle {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            animation: float 20s infinite ease-in-out;
-            mix-blend-mode: overlay;
-          }
-
-          .typing-effect span {
-            color: #ffeb3b;
-            font-weight: bold;
-          }
-
-          @keyframes float {
-            0% {
-              transform: translateY(0) translateX(0);
-            }
-            50% {
-              transform: translateY(-20px) translateX(10px);
-            }
-            100% {
-              transform: translateY(0) translateX(0);
-            }
-          }
-        `}</style>
       </main>
 
       <footer className="text-center mt-12 text-sm text-gray-200">
