@@ -64,19 +64,28 @@ export default function Home() {
       }
   
       if (canvas) {
-        // Set canvas dimensions to match the source image
-        canvas.width = sourceElement.width;
-        canvas.height = sourceElement.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx && sourceElement instanceof HTMLImageElement) {
+          canvas.width = sourceElement.width;
+          canvas.height = sourceElement.height;
+          ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
+        }
         setManipulatedCanvas(canvas);
-      }
+        setIsManipulated(true);
   
-      setIsManipulated(true);
+        // Automatically flip the card to show the manipulated image
+        if (flipCardRef.current) {
+          flipCardRef.current.classList.add('flipped');
+          setShowOriginal(false);
+        }
+      }
     } catch (error) {
       console.error('Manipulation failed:', error);
     } finally {
       setLoading(false);
     }
   };
+  
   
 
   const handleToggleFlip = () => {
