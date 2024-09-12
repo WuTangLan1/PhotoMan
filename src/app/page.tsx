@@ -34,7 +34,6 @@ export default function Home() {
       console.log("Manipulated canvas updated successfully and displayed.");
     }    
   }, [manipulatedCanvas]);
-  
 
   const handleManipulate = async (type: string) => {
     const sourceElement = manipulatedCanvas || imageRef.current;
@@ -85,8 +84,46 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  const handleBrightnessChange = async (brightness: number) => {
+    if (imageRef.current) {
+      await handleManipulateBrightness(brightness);
+    }
+  };
   
+  const handleManipulateBrightness = async (brightness: number) => {
+    const sourceElement = manipulatedCanvas || imageRef.current;
   
+    if (!sourceElement || !(sourceElement instanceof HTMLImageElement || sourceElement instanceof HTMLCanvasElement))
+      return;
+  
+    setLoading(true);
+    let canvas: HTMLCanvasElement | null = null;
+  
+    try {
+      canvas = await adjustBrightness(sourceElement, brightness);
+  
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx && sourceElement instanceof HTMLImageElement) {
+          canvas.width = sourceElement.width;
+          canvas.height = sourceElement.height;
+          ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
+        }
+        setManipulatedCanvas(canvas);
+        setIsManipulated(true);
+  
+        if (flipCardRef.current) {
+          flipCardRef.current.classList.add('flipped');
+          setShowOriginal(false);
+        }
+      }
+    } catch (error) {
+      console.error('Manipulation failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleToggleFlip = () => {
     if (flipCardRef.current && isManipulated) {
@@ -259,69 +296,17 @@ export default function Home() {
           <div className="flex flex-col gap-8 mt-4 mb-4 justify-center">
             <div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">Basic Adjustments</h3>
-              <div className="flex gap-4 flex-wrap">
-                {['Brightness Adjustment', 'Contrast Adjustment', 'Invert Colors'].map((effect) => (
-                  <button
-                    key={effect}
-                    onClick={() => handleManipulate(effect)}
-                    className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition-all"
-                  >
-                    {effect}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Filters</h3>
-              <div className="flex gap-4 flex-wrap">
-                {['Sepia Tone', 'Saturation Adjustment', 'Hue Rotation'].map((effect) => (
-                  <button
-                    key={effect}
-                    onClick={() => handleManipulate(effect)}
-                    className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition-all"
-                  >
-                    {effect}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Transformations</h3>
-              <div className="flex gap-4 flex-wrap">
-                {['Flip Horizontal', 'Flip Vertical', 'Rotate', 'Crop', 'Resize'].map((effect) => (
-                  <button
-                    key={effect}
-                    onClick={() => handleManipulate(effect)}
-                    className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition-all"
-                  >
-                    {effect}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Effects</h3>
-              <div className="flex gap-4 flex-wrap">
-                {[
-                  'Blur Effect',
-                  'Sharpen',
-                  'Pixelate',
-                  'Noise Addition',
-                  'Emboss Effect',
-                  'Threshold',
-                  'Outline Detection',
-                ].map((effect) => (
-                  <button
-                    key={effect}
-                    onClick={() => handleManipulate(effect)}
-                    className="bg-blue-500 text-white py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition-all"
-                  >
-                    {effect}
-                  </button>
-                ))}
+              <div className="flex flex-col items-center">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Brightness Adjustment</h3>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="2"
+                  step="0.1"
+                  defaultValue="1"
+                  onChange={(e) => handleBrightnessChange(parseFloat(e.target.value))}
+                  className="w-full max-w-xs"
+                />
               </div>
             </div>
           </div>
